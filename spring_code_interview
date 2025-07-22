@@ -1,0 +1,13 @@
+Spring源码
+
+ IoC 容器原理
+  Bean 创建流程
+  AbstractBeanFactory#getBean
+    → doGetBean
+        → createBean
+            → doCreateBean
+                → populateBean (依赖注入)
+                → initializeBean (执行 BeanPostProcessor)
+``
+SpringApplication 的初始化
+``
