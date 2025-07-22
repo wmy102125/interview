@@ -1,4 +1,19 @@
 ## SpringApplication 的初始化
+```
+SpringApplication.run()
+    └── new SpringApplication()
+    └── run(args)
+         ├── 发布 ApplicationStartingEvent
+         ├── 创建 Environment & 初始化参数
+         ├── 创建 ApplicationContext
+         ├── 加载 BeanFactory、注册后处理器
+         ├── 刷新容器 refresh()
+         │     └── 创建 Bean、加载配置
+         │     └── 调用 onRefresh() 启动 Tomcat
+         ├── 执行 Runner 接口
+         └── 发布 ApplicationReadyEvent
+
+```
 1、获取监听，SpringApplicationRunListeners listeners = getRunListeners(args); 最终是从spring.factories获取的
 spring.factories配置文件中监听的配置如下
 # Run Listeners
@@ -19,7 +34,7 @@ org.springframework.boot.context.event.EventPublishingRunListener
         this.configureHeadlessProperty();
   	 // 1. 获取Spring的监听器类，这里是从 spring.factories 中去获取，默认的是以 org.springframework.boot.SpringApplicationRunListener 为key,获取到的监听器类型为 EventPublishingRunListener。
         SpringApplicationRunListeners listeners = this.getRunListeners(args);
-	// 1.1 监听器发送启动事件
+	// 1.1 监听器发送启动事件ApplicationStartingEvent
         listeners.starting(bootstrapContext, this.mainApplicationClass);
 
         try {
