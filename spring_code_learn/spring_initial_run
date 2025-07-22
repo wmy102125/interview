@@ -1,0 +1,62 @@
+SpringApplication 的初始化
+``
+	public ConfigurableApplicationContext run(String... args) {
+		// 开启关于启动时间的信息监控
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		// 准备 ApplicationContext
+		ConfigurableApplicationContext context = null;
+		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
+				//java.awt.headless是J2SE的一种模式用于在缺少显示屏、键盘或者鼠标时的系统配置，很多监控工具如jconsole 需要将该值设置为true，系统变量默认为true
+		configureHeadlessProperty();
+		// 1. 获取Spring的监听器类，这里是从 spring.factories 中去获取，默认的是以 org.springframework.boot.SpringApplicationRunListener 为key,获取到的监听器类型为 EventPublishingRunListener。
+		SpringApplicationRunListeners listeners = getRunListeners(args);
+		// 1.1 监听器发送启动事件
+		listeners.starting();
+		try {
+			// 封装参数
+			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
+			// 2. 构造容器环境。将容器的一些配置内容加载到 environment  中
+			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+			// 配置BeanInfo的忽略 ：“spring.beaninfo.ignore”，值为“true”表示跳过对BeanInfo类的搜索
+			configureIgnoreBeanInfo(environment);
+			// 打印信息对象
+			Banner printedBanner = printBanner(environment);
+			// 3. 创建上下文对象
+			context = createApplicationContext();
+			// 从 spring.factries 中获取错误报告的类。出错的时候会调用其方法通知
+			exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
+					new Class[] { ConfigurableApplicationContext.class }, context);
+			// 4. 准备刷新上下文
+			prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+			// 5. 刷新上下文
+			refreshContext(context);
+			// 结束刷新，留待扩展功能，并未实现什么
+			afterRefresh(context, applicationArguments);
+			// 停止监听
+			stopWatch.stop();
+			if (this.logStartupInfo) {
+				new StartupInfoLogger(this.mainApplicationClass).logStarted(getApplicationLog(), stopWatch);
+			}
+			// 监听器发送启动结束时间
+			listeners.started(context);
+			// 调用 ApplicationRunner 和 CommandLineRunner 对应的方法
+			callRunners(context, applicationArguments);
+		}
+		catch (Throwable ex) {
+			handleRunFailure(context, ex, exceptionReporters, listeners);
+			throw new IllegalStateException(ex);
+		}
+
+		try {
+			// 发送容器运行事件
+			listeners.running(context);
+		}
+		catch (Throwable ex) {
+			handleRunFailure(context, ex, exceptionReporters, null);
+			throw new IllegalStateException(ex);
+		}
+		return context;
+	}
+
+``
